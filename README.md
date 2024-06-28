@@ -22,4 +22,4 @@ A Python script for archiving YouTube channel content including videos, thumbnai
 1. Clone the repository:
    ```bash
    git clone https://github.com/MX199/archive_YT
-   cd youtube-channel-archive
+   cd archive_YT
