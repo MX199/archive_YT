@@ -174,8 +174,8 @@ def download_descriptions_only(channel_name, type_yt):
         download_and_save(
             channel_name,
             video_info,
-            download_videos=False,
-            download_thumbnails=False,
+            download_videos=True,
+            download_thumbnails=True,
             download_descriptions=True
         )
 
