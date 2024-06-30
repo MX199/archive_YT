@@ -1,10 +1,10 @@
 # YouTube Channel Archive
+A Python script for archiving YouTube channel content including videos, thumbnails, and descriptions.
 ![image](https://github.com/MX199/archive_YT/assets/67452715/343f9954-a828-4624-8eeb-b64d5880195f)
 
 ![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-A Python script for archiving YouTube channel content including videos, thumbnails, and descriptions.
 
 ## Features
 
