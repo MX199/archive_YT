@@ -1,7 +1,6 @@
 import os
 import yt_dlp
 
-
 def download_and_save(channel_name, video_info, download_videos=True, download_thumbnails=True,
                       download_descriptions=True):
     try:
@@ -13,7 +12,7 @@ def download_and_save(channel_name, video_info, download_videos=True, download_t
             output_template = os.path.join(category_dir, f"{video_info['title']}.mp4")
             ydl_opts = {
                 'outtmpl': output_template,
-                'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+                'format': 'bestvideo+bestaudio/best',  # Ensure highest quality download
                 'socket_timeout': 5,
                 'retries': 3,
                 'writesubtitles': False,
@@ -42,13 +41,13 @@ def download_and_save(channel_name, video_info, download_videos=True, download_t
 
                 print(f"Downloaded thumbnail for '{video_info['title']}' successfully.")
 
-        # Skip saving descriptions
-        # if download_descriptions:
-        #     description_output = os.path.join(category_dir, f"{video_info['title']}_description.txt")
-        #     with open(description_output, 'w', encoding='utf-8') as desc_file:
-        #         desc_file.write(video_info['description'])
+        if download_descriptions:
+            description_output = os.path.join(category_dir, f"{video_info['title']}_description.txt")
+            with open(description_output, 'w', encoding='utf-8') as desc_file:
+                desc_file.write(video_info['description'])
 
-        #     print(f"Saved description for '{video_info['title']}' successfully.")
+            print(f"Saved description for '{video_info['title']}' successfully.")
 
     except Exception as e:
         print(f"Error downloading or saving '{video_info['title']}': {e}")
+
