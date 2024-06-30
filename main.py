@@ -3,9 +3,8 @@ import json
 import argparse
 import time
 from utilities import create_channel_dirs, extract_video_info
-from downloader import download_and_save  # Assuming you have a downloader module
+from downloader import download_and_save  
 
-# ASCII art logo with ANSI escape sequences for red color
 logo = """
 \033[91m 
 
@@ -19,34 +18,27 @@ by MX199 https://github.com/MX199
 
 def main(channel_name, type_yt):
     channel_url = f"https://www.youtube.com/@{channel_name}/{type_yt}"
-    videos_info_file = f"{channel_name} - info.json"  # File to store processed video info
+    videos_info_file = f"{channel_name} - info.json" 
 
-    # Create channel directory if it doesn't exist
     create_channel_dirs(channel_name)
 
     # Extract video information
     channel_info = extract_video_info(channel_url)
 
-    # List to store cleaned video info
     cleaned_video_info = []
 
-    # Print and process each video
     print(f"Fetching video information from {channel_name}...")
 
-    # Simulate a loading bar for fetching video information
     print("\033[91mFetching videos:\033[0m ", end="", flush=True)
     for _ in range(10):
-        time.sleep(0.2)  # Simulate fetching delay
+        time.sleep(0.2)  
         print("\033[91m█\033[0m", end="", flush=True)
     print("")
 
-    # Simulate processing each video
     print(f"\033[91mProcessing videos:\033[0m ")
     for video_info in channel_info:
-        # Simulate processing delay
         time.sleep(0.2)
 
-        # Simulate downloading delay
         for _ in range(10):
             time.sleep(0.1)
             print("\033[91m.\033[0m", end="", flush=True)
@@ -61,7 +53,6 @@ def main(channel_name, type_yt):
             download_descriptions=True  # Set to False to skip saving descriptions
         )
 
-        # Clean video info (remove unnecessary fields)
         cleaned_video_info.append({
             'title': video_info['title'],
             'description': video_info['description'],
@@ -69,7 +60,6 @@ def main(channel_name, type_yt):
             'webpage_url': video_info['webpage_url'],
         })
 
-    # Write cleaned video info to channel directory
     videos_info_path = os.path.join(channel_name, videos_info_file)
     with open(videos_info_path, 'w', encoding='utf-8') as f:
         json.dump(cleaned_video_info, f, ensure_ascii=False, indent=4)
@@ -106,27 +96,21 @@ def download_thumbnails_only(channel_name, type_yt):
     channel_url = f"https://www.youtube.com/@{channel_name}/{type_yt}"
     videos_info_file = f"{channel_name} - thumbnails_only_info.json"
 
-    # Create channel directory if it doesn't exist
     create_channel_dirs(channel_name)
 
-    # Extract video information
     channel_info = extract_video_info(channel_url)
 
-    # List to store cleaned video info
     cleaned_video_info = []
 
-    # Process each video for thumbnails only
     print(f"Downloading thumbnails from {channel_name}...")
 
-    # Simulate downloading thumbnails
     print("\033[91mDownloading thumbnails:\033[0m ", end="", flush=True)
     for _ in range(10):
-        time.sleep(0.2)  # Simulate downloading delay
+        time.sleep(0.2)  
         print("\033[91m█\033[0m", end="", flush=True)
     print("")
 
     for video_info in channel_info:
-        # Download and save the thumbnail only
         download_and_save(
             channel_name,
             video_info,
@@ -141,7 +125,6 @@ def download_thumbnails_only(channel_name, type_yt):
             'thumbnail': video_info['thumbnail'],
         })
 
-    # Write cleaned video info to channel directory
     videos_info_path = os.path.join(channel_name, videos_info_file)
     with open(videos_info_path, 'w', encoding='utf-8') as f:
         json.dump(cleaned_video_info, f, ensure_ascii=False, indent=4)
@@ -150,19 +133,14 @@ def download_descriptions_only(channel_name, type_yt):
     channel_url = f"https://www.youtube.com/@{channel_name}/{type_yt}"
     videos_info_file = f"{channel_name} - descriptions_only_info.json"
 
-    # Create channel directory if it doesn't exist
     create_channel_dirs(channel_name)
 
-    # Extract video information
     channel_info = extract_video_info(channel_url)
 
-    # List to store cleaned video info
     cleaned_video_info = []
 
-    # Process each video for descriptions only
     print(f"Downloading descriptions from {channel_name}...")
 
-    # Simulate downloading descriptions
     print("\033[91mDownloading descriptions:\033[0m ", end="", flush=True)
     for _ in range(10):
         time.sleep(0.2)
@@ -170,7 +148,6 @@ def download_descriptions_only(channel_name, type_yt):
     print("")
 
     for video_info in channel_info:
-        # Download and save the description only
         download_and_save(
             channel_name,
             video_info,
@@ -184,7 +161,6 @@ def download_descriptions_only(channel_name, type_yt):
             'description': video_info['description'],
         })
 
-    # Write cleaned video info to channel directory
     videos_info_path = os.path.join(channel_name, videos_info_file)
     with open(videos_info_path, 'w', encoding='utf-8') as f:
         json.dump(cleaned_video_info, f, ensure_ascii=False, indent=4)
@@ -193,22 +169,18 @@ def download_videos_and_thumbnails(channel_name, type_yt):
     channel_url = f"https://www.youtube.com/@{channel_name}/{type_yt}"
     videos_info_file = f"{channel_name} - videos_and_thumbnails_info.json"
 
-    # Create channel directory if it doesn't exist
     create_channel_dirs(channel_name)
 
     # Extract video information
     channel_info = extract_video_info(channel_url)
 
-    # List to store cleaned video info
     cleaned_video_info = []
 
-    # Process each video for videos and thumbnails
     print(f"Downloading videos and thumbnails from {channel_name}...")
 
-    # Simulate downloading videos and thumbnails
     print("\033[91mDownloading videos and thumbnails:\033[0m ", end="", flush=True)
     for _ in range(10):
-        time.sleep(0.2)  # Simulate downloading delay
+        time.sleep(0.2)  
         print("\033[91m█\033[0m", end="", flush=True)
     print("")
 
