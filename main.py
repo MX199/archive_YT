@@ -1,9 +1,11 @@
 import os
 import json
-import argparse
 import time
+import logging
+import asyncio
 from utilities import create_channel_dirs, extract_video_info
-from downloader import download_and_save  
+from downloader import download_and_save
+
 
 logo = """
 \033[91m 
@@ -12,59 +14,85 @@ logo = """
 ██▀▄─██▄─▄▄▀█─▄▄▄─█─█─█▄─▄█▄─█─▄█▄─▄▄─█▄─█─▄█─▄─▄─█
 ██─▀─███─▄─▄█─███▀█─▄─██─███▄▀▄███─▄█▀██▄─▄████─███
 ▀▄▄▀▄▄▀▄▄▀▄▄▀▄▄▄▄▄▀▄▀▄▀▄▄▄▀▀▀▄▀▀▀▄▄▄▄▄▀▀▄▄▄▀▀▀▄▄▄▀▀
-by MX199 https://github.com/MX199
+by MX199 https://github.com/MX199/archive_YT
 \033[0m
 """
 
-def main(channel_name, type_yt):
-    channel_url = f"https://www.youtube.com/@{channel_name}/{type_yt}"
-    videos_info_file = f"{channel_name} - info.json" 
 
-    create_channel_dirs(channel_name)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    # Extract video information
-    channel_info = extract_video_info(channel_url)
+def load_config():
+    config_path = 'config.json'
+    try:
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+            logging.info("Configuration loaded successfully.")
+            return config
+    except FileNotFoundError:
+        logging.error(f"Configuration file {config_path} not found.")
+        raise
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON from {config_path}: {e}")
+        raise
 
-    cleaned_video_info = []
-
-    print(f"Fetching video information from {channel_name}...")
-
+def fetch_videos(channel_url):
+    logging.info(f"Fetching video information from {channel_url}...")
+    # Simulate loading bar
     print("\033[91mFetching videos:\033[0m ", end="", flush=True)
     for _ in range(10):
-        time.sleep(0.2)  
+        time.sleep(0.1)
         print("\033[91m█\033[0m", end="", flush=True)
     print("")
+    return extract_video_info(channel_url)
 
+async def download_content_async(channel_name, video_info, download_videos, download_thumbnails, download_descriptions):
+    await asyncio.to_thread(download_and_save, channel_name, video_info, download_videos, download_thumbnails, download_descriptions)
+    return {
+        'title': video_info['title'],
+        'description': video_info.get('description'),
+        'thumbnail': video_info.get('thumbnail'),
+        'webpage_url': video_info['webpage_url'],
+    }
+
+def sanitize_filename(name):
+    return "".join(c for c in name if c.isalnum() or c in (' ', '.', '_')).rstrip()
+
+async def process_videos(channel_name, type_yt, download_videos, download_thumbnails, download_descriptions, output_file):
+    channel_url = f"https://www.youtube.com/@{channel_name}/{type_yt}"
+    create_channel_dirs(channel_name)
+    channel_info = fetch_videos(channel_url)
+
+    cleaned_video_info = []
     print(f"\033[91mProcessing videos:\033[0m ")
-    for video_info in channel_info:
-        time.sleep(0.2)
 
-        for _ in range(10):
-            time.sleep(0.1)
-            print("\033[91m.\033[0m", end="", flush=True)
-        print("\033[91mDONE\033[0m")
+    tasks = [
+        download_content_async(channel_name, video_info, download_videos, download_thumbnails, download_descriptions)
+        for video_info in channel_info
+    ]
 
-        # Download and save the video
-        download_and_save(
-            channel_name,
-            video_info,
-            download_videos=True,  # Set to False to skip downloading videos
-            download_thumbnails=True,  # Set to False to skip downloading thumbnails
-            download_descriptions=True  # Set to False to skip saving descriptions
-        )
+    for task in asyncio.as_completed(tasks):
+        cleaned_video_info.append(await task)
 
-        cleaned_video_info.append({
-            'title': video_info['title'],
-            'description': video_info['description'],
-            'thumbnail': video_info['thumbnail'],
-            'webpage_url': video_info['webpage_url'],
-        })
-
-    videos_info_path = os.path.join(channel_name, videos_info_file)
+    videos_info_path = os.path.join(channel_name, sanitize_filename(output_file))
     with open(videos_info_path, 'w', encoding='utf-8') as f:
         json.dump(cleaned_video_info, f, ensure_ascii=False, indent=4)
 
+    print("\033[91mDownload and processing completed!\033[0m")
+
+def main(channel_name, type_yt, option):
+    options_map = {
+        '1': (True, True, True, f"{channel_name} - info.json"),
+        '2': (False, True, False, f"{channel_name} - thumbnails_only_info.json"),
+        '3': (False, False, True, f"{channel_name} - descriptions_only_info.json"),
+        '4': (True, True, False, f"{channel_name} - videos_and_thumbnails_info.json"),
+    }
+    download_videos, download_thumbnails, download_descriptions, output_file = options_map[option]
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(process_videos(channel_name, type_yt, download_videos, download_thumbnails, download_descriptions, output_file))
+
 def print_menu():
+    print(logo)
     print("Select an option:")
     print("1. Download and process videos")
     print("2. Download thumbnails only")
@@ -72,144 +100,44 @@ def print_menu():
     print("4. Download both videos and thumbnails")
     print("5. Exit")
 
-def interactive_menu(channel_name, type_yt):
+def interactive_menu():
     while True:
-        print(logo)
         print_menu()
+        channel_name = input("\033[91mEnter the name of the YouTube channel:\033[0m ")
+        type_yt = input("\033[91mDo you want to download videos or shorts? Enter 'videos' or 'shorts':\033[0m ")
+        
         choice = input("\033[91mEnter your choice (1-5):\033[0m ")
-
         if choice == '1':
-            main(channel_name, type_yt)
+            main(channel_name, type_yt, '1')
         elif choice == '2':
-            download_thumbnails_only(channel_name, type_yt)
+            main(channel_name, type_yt, '2')
         elif choice == '3':
-            download_descriptions_only(channel_name, type_yt)
+            main(channel_name, type_yt, '3')
         elif choice == '4':
-            download_videos_and_thumbnails(channel_name, type_yt)
+            main(channel_name, type_yt, '4')
         elif choice == '5':
             print("\033[91mExiting...\033[0m")
             break
         else:
             print("\033[91mInvalid choice. Please enter a number from 1 to 5.\033[0m")
 
-def download_thumbnails_only(channel_name, type_yt):
-    channel_url = f"https://www.youtube.com/@{channel_name}/{type_yt}"
-    videos_info_file = f"{channel_name} - thumbnails_only_info.json"
-
-    create_channel_dirs(channel_name)
-
-    channel_info = extract_video_info(channel_url)
-
-    cleaned_video_info = []
-
-    print(f"Downloading thumbnails from {channel_name}...")
-
-    print("\033[91mDownloading thumbnails:\033[0m ", end="", flush=True)
-    for _ in range(10):
-        time.sleep(0.2)  
-        print("\033[91m█\033[0m", end="", flush=True)
-    print("")
-
-    for video_info in channel_info:
-        download_and_save(
-            channel_name,
-            video_info,
-            download_videos=False,
-            download_thumbnails=True,
-            download_descriptions=False
-        )
-
-        # Clean video info (remove unnecessary fields)
-        cleaned_video_info.append({
-            'title': video_info['title'],
-            'thumbnail': video_info['thumbnail'],
-        })
-
-    videos_info_path = os.path.join(channel_name, videos_info_file)
-    with open(videos_info_path, 'w', encoding='utf-8') as f:
-        json.dump(cleaned_video_info, f, ensure_ascii=False, indent=4)
-
-def download_descriptions_only(channel_name, type_yt):
-    channel_url = f"https://www.youtube.com/@{channel_name}/{type_yt}"
-    videos_info_file = f"{channel_name} - descriptions_only_info.json"
-
-    create_channel_dirs(channel_name)
-
-    channel_info = extract_video_info(channel_url)
-
-    cleaned_video_info = []
-
-    print(f"Downloading descriptions from {channel_name}...")
-
-    print("\033[91mDownloading descriptions:\033[0m ", end="", flush=True)
-    for _ in range(10):
-        time.sleep(0.2)
-        print("\033[91m█\033[0m", end="", flush=True)
-    print("")
-
-    for video_info in channel_info:
-        download_and_save(
-            channel_name,
-            video_info,
-            download_videos=True,
-            download_thumbnails=True,
-            download_descriptions=True
-        )
-
-        cleaned_video_info.append({
-            'title': video_info['title'],
-            'description': video_info['description'],
-        })
-
-    videos_info_path = os.path.join(channel_name, videos_info_file)
-    with open(videos_info_path, 'w', encoding='utf-8') as f:
-        json.dump(cleaned_video_info, f, ensure_ascii=False, indent=4)
-
-def download_videos_and_thumbnails(channel_name, type_yt):
-    channel_url = f"https://www.youtube.com/@{channel_name}/{type_yt}"
-    videos_info_file = f"{channel_name} - videos_and_thumbnails_info.json"
-
-    create_channel_dirs(channel_name)
-
-    # Extract video information
-    channel_info = extract_video_info(channel_url)
-
-    cleaned_video_info = []
-
-    print(f"Downloading videos and thumbnails from {channel_name}...")
-
-    print("\033[91mDownloading videos and thumbnails:\033[0m ", end="", flush=True)
-    for _ in range(10):
-        time.sleep(0.2)  
-        print("\033[91m█\033[0m", end="", flush=True)
-    print("")
-
-    for video_info in channel_info:
-        download_and_save(
-            channel_name,
-            video_info,
-            download_videos=True,
-            download_thumbnails=True,
-            download_descriptions=False
-        )
-        cleaned_video_info.append({
-            'title': video_info['title'],
-            'thumbnail': video_info['thumbnail'],
-            'webpage_url': video_info['webpage_url'],
-        })
-
-    videos_info_path = os.path.join(channel_name, videos_info_file)
-    with open(videos_info_path, 'w', encoding='utf-8') as f:
-        json.dump(cleaned_video_info, f, ensure_ascii=False, indent=4)
+        input("\nPress Enter to return to the menu...")
+        os.system('cls' if os.name == 'nt' else 'clear')  # Clear screen
 
 def print_welcome_message():
-    print(logo)
-    print("\033[91mWelcome to YouTube Channel archive!\033[0m")
+    print("\033[91m")  
+    for _ in range(5):
+        os.system('cls' if os.name == 'nt' else 'clear')  
+        print(logo)
+        time.sleep(0.2)  
+    print("Welcome to YouTube Channel archive!\033[0m")
 
 if __name__ == "__main__":
+    try:
+        config = load_config()
+    except Exception as e:
+        logging.critical(f"Failed to load configuration: {e}")
+        exit(1)
+    
     print_welcome_message()
-
-    channel_name = input("\033[91mEnter the channel name:\033[0m ")
-    type_yt = input("\033[91mEnter the type of content (videos or shorts):\033[0m ")
-
-    interactive_menu(channel_name, type_yt)
+    interactive_menu()
