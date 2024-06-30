@@ -19,8 +19,8 @@ A Python script for archiving YouTube channel content including videos, thumbnai
 - Required Python packages (`yt_dlp`, `tqdm`)
 
 ## Example
-![image](https://github.com/MX199/archive_YT/assets/67452715/33efb6eb-d9cf-461c-a837-abb4792c6c00)
-![image](https://github.com/MX199/archive_YT/assets/67452715/c131fb61-f7aa-4676-a51f-d45b9abbf4d2)
+![image](https://github.com/MX199/archive_YT/assets/67452715/fa812637-6c92-4a21-8042-bd77726f8b5b)
+![image](https://github.com/MX199/archive_YT/assets/67452715/4461d7d7-01e8-4d01-9cdb-1427df1983f6)
 ![image](https://github.com/MX199/archive_YT/assets/67452715/968a1c79-5cdb-4ed8-a428-74a0307d2a55)
 
 
