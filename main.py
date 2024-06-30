@@ -6,7 +6,6 @@ import asyncio
 from utilities import create_channel_dirs, extract_video_info
 from downloader import download_and_save
 
-
 logo = """
 \033[91m 
 
@@ -17,7 +16,6 @@ logo = """
 by MX199 https://github.com/MX199/archive_YT
 \033[0m
 """
-
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -79,7 +77,7 @@ async def process_videos(channel_name, type_yt, download_videos, download_thumbn
 
     print("\033[91mDownload and processing completed!\033[0m")
 
-def main(channel_name, type_yt, option):
+async def main(channel_name, type_yt, option):
     options_map = {
         '1': (True, True, True, f"{channel_name} - info.json"),
         '2': (False, True, False, f"{channel_name} - thumbnails_only_info.json"),
@@ -88,8 +86,7 @@ def main(channel_name, type_yt, option):
     }
     download_videos, download_thumbnails, download_descriptions, output_file = options_map[option]
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(process_videos(channel_name, type_yt, download_videos, download_thumbnails, download_descriptions, output_file))
+    await process_videos(channel_name, type_yt, download_videos, download_thumbnails, download_descriptions, output_file)
 
 def print_menu():
     print(logo)
@@ -108,13 +105,13 @@ def interactive_menu():
         
         choice = input("\033[91mEnter your choice (1-5):\033[0m ")
         if choice == '1':
-            main(channel_name, type_yt, '1')
+            asyncio.run(main(channel_name, type_yt, '1'))
         elif choice == '2':
-            main(channel_name, type_yt, '2')
+            asyncio.run(main(channel_name, type_yt, '2'))
         elif choice == '3':
-            main(channel_name, type_yt, '3')
+            asyncio.run(main(channel_name, type_yt, '3'))
         elif choice == '4':
-            main(channel_name, type_yt, '4')
+            asyncio.run(main(channel_name, type_yt, '4'))
         elif choice == '5':
             print("\033[91mExiting...\033[0m")
             break
