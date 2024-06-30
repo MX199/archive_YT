@@ -3,6 +3,7 @@
 
 ![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
 A Python script for archiving YouTube channel content including videos, thumbnails, and descriptions.
 
 
